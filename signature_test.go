@@ -62,9 +62,35 @@ func Test_Signature(t *testing.T) {
 	uri.Add("Timestamp", "2016-03-24T16:41:54Z")
 
 	cannoURI := "GET" + "&" + url.QueryEscape("/") + "&" + url.QueryEscape(uri.Encode())
-
 	code := ShaHmac1(cannoURI, "testsecret&")
 
 	fmt.Println(code)
+	if code == "uRpHwaSEt3J+6KQD//svCh/x+pI=" {
+		fmt.Println("success")
+	}
+
+	code2 := Signature("GET", uri, "testsecret&")
+	fmt.Println(code2)
+	if code2 == "uRpHwaSEt3J+6KQD//svCh/x+pI=" {
+		fmt.Println("success")
+	}
+
+}
+
+func TestNew(t *testing.T) {
+	//nowtime := time.Now()
+	//
+	//fmt.Println(nowtime.Format("2006-01-02T15:04:05Z"))
+	//fmt.Println(nowtime.Format("2006-01-02T15:04:05Z-0700"))
+	//fmt.Println(nowtime.Format("2006-01-02T15:04:05Z+0800"))
+
+	loc, _ := time.LoadLocation("") //参数就是解压文件的“目录”+“/”+“文件名”。
+	//fmt.Println(time.Now().In(loc))
+
+	timeNow := time.Now().In(loc).Format("2006-01-02T15:04:05Z")
+	fmt.Println(timeNow)
+	fmt.Println(url.QueryEscape(timeNow))
+
+	fmt.Println(url.QueryEscape("2016-03-24T16:41:54Z"))
 
 }
