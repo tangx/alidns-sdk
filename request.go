@@ -1,6 +1,7 @@
 package alidns
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,24 +21,15 @@ const (
 	reqProtocol = "https"
 )
 
-//基础的API响应结构
-type BaseResponse struct {
-	Code     int
-	Message  string
-	CodeDesc string
-}
-
-type RespError struct {
+type ErrorResponse struct {
 	Code      string `json:"Code,omitempty"`
 	HostID    string `json:"HostId,omitempty"`
 	Message   string `json:"Message,omitempty"`
 	RequestID string `json:"RequestId,omitempty"`
 }
 
-type RespInfo struct{}
-
 // 请求 alidns API
-func (cli *Client) request(method, action string, param url.Values, body io.Reader, respInfo interface{}) ([]byte, error) {
+func (cli *Client) request(method, action string, param url.Values, body io.Reader, respInfo interface{}) error {
 
 	if param == nil {
 		param = url.Values{}
@@ -89,13 +81,13 @@ func (cli *Client) request(method, action string, param url.Values, body io.Read
 	reqURL := reqProtocol + "://" + ALIDNS + "/?" + param.Encode()
 	req, err := http.NewRequest(method, reqURL, body)
 	if err != nil {
-		return nil, fmt.Errorf("构建请求错误: %s", err)
+		return fmt.Errorf("构建请求错误: %s", err)
 	}
 
 	// 发起请求
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("执行请求错误: %s", err)
+		return fmt.Errorf("执行请求错误: %s", err)
 	}
 	// 关闭请求
 	defer resp.Body.Close()
@@ -104,28 +96,40 @@ func (cli *Client) request(method, action string, param url.Values, body io.Read
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return err
+	}
+	//fmt.Println(string(respBody))
+
+	// 解析错误结构体
+	var errResp ErrorResponse
+	err = json.Unmarshal(respBody, &errResp)
+	if err != nil {
+		return fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
+	}
+	if errResp.Code != "" {
+		return fmt.Errorf("[%s](%s): %s", errResp.RequestID, errResp.Code, errResp.Message)
 	}
 
-	return respBody, nil
+	// 解析正常结构体
+	err = json.Unmarshal(respBody, &respInfo)
+	if err != nil {
+		return fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
+	}
+
+	return nil
 }
 
 // 使用 GET 方法请求 API
-func (cli *Client) requestGET(action string, param url.Values, respInfo interface{}) ([]byte, error) {
+func (cli *Client) requestGET(action string, param url.Values, respInfo interface{}) error {
 	return cli.request("GET", action, param, nil, respInfo)
 }
 
 // Do to start requset
-func (cli *Client) Do(action string, body map[string]string) ([]byte, error) {
+func (cli *Client) Do(action string, body map[string]string, respInfo interface{}) error {
 	param := url.Values{}
 	for k, v := range body {
 		param.Set(k, v)
 	}
 
-	respInfo := RespInfo{}
-	respBody, err := cli.requestGET(action, param, respInfo)
-	if err != nil {
-		return nil, err
-	}
-	return respBody, nil
+	return cli.requestGET(action, param, respInfo)
 }
