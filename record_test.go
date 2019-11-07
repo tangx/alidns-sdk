@@ -8,13 +8,12 @@ import (
 func TestClient_AddDomainRecord(t *testing.T) {
 
 	cli := New(akid, akey)
-	data := map[string]string{
-		"RR":    "tangx22223",
-		"Type":  "A",
-		"Value": "123.223.112.121",
-	}
 
-	rrId, err := cli.AddDomainRecord("rockontrol.com", data)
+	RR := "tangx123"
+	Type := "A"
+	Value := "123.231.12.11"
+
+	rrId, err := cli.AddDomainRecord("rockontrol.com", RR, Type, Value, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
