@@ -34,7 +34,7 @@ func (cli *Client) AddDomainRecord(domain string, RR string, Type string, Value 
 	}
 
 	//fmt.Println(respInfo)
-	rrID, err := strconv.Atoi(respInfo.RecordID)
+	rrID, _ := strconv.Atoi(respInfo.RecordID)
 	return rrID, nil
 }
 
