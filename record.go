@@ -36,7 +36,7 @@ func (cli *Client) AddDomainRecord(domain string, RR string, Type string, Value 
 		"Value":      Value,
 	}
 
-	errResp, err := cli.Do("AddDomainRecord", body, optional, &respInfo)
+	errResp, err = cli.Do("AddDomainRecord", body, optional, &respInfo)
 	return respInfo, errResp, err
 
 }
