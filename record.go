@@ -25,19 +25,9 @@ type RecordInfo struct {
 	RequestId  string `json:"RequestId"`
 }
 
-// DescribeRecordResponse 返回结构体
-var DescribeRecordResponse struct {
-	DomainRecords struct {
-		Record []RecordInfo `json:"Record"`
-	} `json:"DomainRecords"`
-	PageNumber int    `json:"PageNumber"`
-	PageSize   int    `json:"PageSize"`
-	RequestID  string `json:"RequestId"`
-	TotalCount int    `json:"TotalCount"`
-}
-
-// AddDomainRecord Add Domain Record
-func (cli *Client) AddDomainRecord(domain string, RR string, Type string, Value string, optional map[string]string) (BaseRecordResponse, ErrorResponse, error) {
+// AddDomainRecord 调用AddDomainRecord根据传入参数添加解析记录。
+// https://help.aliyun.com/document_detail/29772.html?spm=a2c4g.11186623.6.641.1ee13b590wUMUS
+func (cli *Client) AddDomainRecord(domain string, RR string, Type string, Value string, optional map[string]string) (respInfo BaseRecordResponse, errResp ErrorResponse, err error) {
 	// 设置必要参数
 	body := map[string]string{
 		"DomainName": domain,
@@ -46,8 +36,6 @@ func (cli *Client) AddDomainRecord(domain string, RR string, Type string, Value 
 		"Value":      Value,
 	}
 
-	var respInfo BaseRecordResponse
-	// 请求
 	errResp, err := cli.Do("AddDomainRecord", body, optional, &respInfo)
 	return respInfo, errResp, err
 
@@ -79,17 +67,6 @@ func (cli *Client) UpdateDomainRecord(RR string, RecordId string, Type string, V
 	}
 
 	errResp, err = cli.Do("UpdateDomainRecord", body, optional, &respInfo)
-	return respInfo, errResp, err
-}
-
-// DescribeDomainRecords 调用DescribeDomainRecords根据传入参数获取指定主域名的所有解析记录列表。
-// https://help.aliyun.com/document_detail/29776.html?spm=a2c4g.11186623.6.638.f7553b59curplN
-func (cli *Client) DescribeDomainRecords(domain string, optional map[string]string) (respInfo BaseRecordResponse, errResp ErrorResponse, err error) {
-	body := map[string]string{
-		"DomainName": domain,
-	}
-
-	errResp, err = cli.Do("DescribeDomainRecords", body, optional, &respInfo)
 	return respInfo, errResp, err
 }
 
