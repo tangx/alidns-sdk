@@ -1,4 +1,4 @@
-module github.com/tangx/alidns
+module github.com/tangx/alidns-sdk
 
 go 1.13
 
