@@ -18,6 +18,7 @@ func Signature(reqMethod string, param url.Values, secret string) string {
 
 }
 
+// ShaHmac1 计算 HMAC-SHA1 校验码
 func ShaHmac1(source, secret string) string {
 	key := []byte(secret)
 	sha1hmac := hmac.New(sha1.New, key)

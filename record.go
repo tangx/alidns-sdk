@@ -8,6 +8,7 @@ import (
 type BaseRecordResponse struct {
 	RecordId  string
 	RequestID string
+	Status    string
 }
 
 // RecordInfo 结构体
@@ -70,7 +71,7 @@ func (cli *Client) UpdateDomainRecord(RR string, RecordId string, Type string, V
 	return respInfo, errResp, err
 }
 
-// DescribeDomainRecordInfo
+// DescribeDomainRecordInfo 调用DescribeDomainRecordInfo获取解析记录的详细信息。
 // https://help.aliyun.com/document_detail/29777.html?spm=a2c4g.11186623.6.639.31795eb4kuGJJO
 func (cli *Client) DescribeDomainRecordInfo(RecordId string) (respInfo RecordInfo, errResp ErrorResponse, err error) {
 	body := map[string]string{
@@ -79,5 +80,23 @@ func (cli *Client) DescribeDomainRecordInfo(RecordId string) (respInfo RecordInf
 
 	errResp, err = cli.Do("DescribeDomainRecordInfo", body, nil, &respInfo)
 
+	return respInfo, errResp, err
+}
+
+// SetDomainRecordStatus 调用SetDomainRecordStatus根据传入参数设置解析记录状态。
+// https://help.aliyun.com/document_detail/29775.html?spm=a2c4g.11186623.6.645.334628465tIHev
+func (cli *Client) SetDomainRecordStatus(RecordId string, status bool) (respInfo BaseRecordResponse, errResp ErrorResponse, err error) {
+
+	var Status string
+	if status {
+		Status = "Disable"
+	} else {
+		Status = "Enable"
+	}
+	body := map[string]string{
+		"RecordId": RecordId,
+		"Status":   Status,
+	}
+	errResp, err = cli.Do("SetDomainRecordStatus", body, nil, &respInfo)
 	return respInfo, errResp, err
 }
