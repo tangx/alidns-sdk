@@ -77,7 +77,7 @@ func (cli *Client) DescribeDomainRecordInfo(RecordId string) (respInfo RecordInf
 		"RecordId": RecordId,
 	}
 
-	errResp, err = cli.Do("DescribeDomainRecordInfo", body, &respInfo)
+	errResp, err = cli.Do("DescribeDomainRecordInfo", body, nil, &respInfo)
 
 	return respInfo, errResp, err
 }
