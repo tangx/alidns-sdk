@@ -2,55 +2,50 @@ package alidns
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 )
 
-func TestClient_AddDomainRecord(t *testing.T) {
+func TestClient_AddDomainRecord2(t *testing.T) {
 
 	cli := New(akid, akey)
 
-	RR := "tangx1222323"
+	RR := "tangx12223"
 	Type := "A"
 	Value := "123.231.12.11"
+	ValueUpdate := "111.222.33.44"
 
 	// add
-	rrId, err := cli.AddDomainRecord("rockontrol.com", RR, Type, Value, nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("RequestId: %d \n", rrId)
+	resp, errResp, err := cli.AddDomainRecord("rockontrol.com", RR, Type, Value, nil)
 
-	time.Sleep(3 * time.Second)
+	if err != nil {
+		log.Fatal(errResp.Code, errResp.Message)
+	}
+	fmt.Println(resp.RecordId)
+	rrID := resp.RecordId
 
 	// update
-	ok, err := cli.UpdateDomainRecord(RR, rrId, Type, "13.131.12.11", nil)
+	time.Sleep(1 * time.Second)
+	resp, errResp, err = cli.UpdateDomainRecord(RR, rrID, Type, ValueUpdate, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(errResp.Message)
 	}
-	if ok {
-		fmt.Println("update success")
-	} else {
-		fmt.Println("update faild")
-	}
+	fmt.Println(resp.RecordId)
 
-	time.Sleep(3 * time.Second)
+	// describe
+	time.Sleep(1 * time.Second)
+	descResp, errResp, err := cli.DescribeDomainRecordInfo(rrID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(descResp)
 
 	// delete
-	ok, err = cli.DeleteDomainRecord(rrId)
+	time.Sleep(1 * time.Second)
+	resp, errResp, err = cli.DeleteDomainRecord(rrID)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(errResp.Message)
 	}
-	if ok {
-		fmt.Println("delete success")
-	} else {
-		fmt.Println("delete faild")
-	}
-}
-
-func TestClient_DescribeDomainRecords(t *testing.T) {
-	cli := New(akid, akey)
-
-	data, _ := cli.DescribeDomainRecords("rockontrol.com", nil)
-	fmt.Println(data)
+	fmt.Println(resp.RecordId)
 }

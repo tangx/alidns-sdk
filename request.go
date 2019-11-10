@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	//URI 云解析API请求的资源地址
+	//ALIDNS 云解析API请求的资源地址
 	ALIDNS      = "alidns.aliyuncs.com"
 	apiVersion  = "2015-01-09"
 	sigVersion  = "1.0"
 	reqProtocol = "https"
 )
 
+// ErrorResponse alidns 默认错误信息结构
 type ErrorResponse struct {
 	Code      string `json:"Code,omitempty"`
 	HostID    string `json:"HostId,omitempty"`
@@ -29,8 +30,8 @@ type ErrorResponse struct {
 }
 
 // 请求 alidns API
-func (cli *Client) request(method, action string, param url.Values, body io.Reader, respInfo interface{}) error {
-
+// 当返回 error 为 nil 的时候， errResp 一定为空结构体。 否则可以通过 errResp.Message 查看错误信息。
+func (cli *Client) request(method, action string, param url.Values, body io.Reader, respInfo interface{}) (errResp ErrorResponse, err error) {
 	if param == nil {
 		param = url.Values{}
 	}
@@ -81,13 +82,19 @@ func (cli *Client) request(method, action string, param url.Values, body io.Read
 	reqURL := reqProtocol + "://" + ALIDNS + "/?" + param.Encode()
 	req, err := http.NewRequest(method, reqURL, body)
 	if err != nil {
-		return fmt.Errorf("构建请求错误: %s", err)
+		return ErrorResponse{
+			Code:    "Requset Eroor",
+			Message: fmt.Sprintf("构建请求错误: %s", err),
+		}, fmt.Errorf("构建请求错误: %s", err)
 	}
 
 	// 发起请求
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("执行请求错误: %s", err)
+		return ErrorResponse{
+			Code:    "Requset Eroor",
+			Message: fmt.Sprintf("执行请求错误: %s", err),
+		}, fmt.Errorf("执行请求错误: %s", err)
 	}
 	// 关闭请求
 	defer resp.Body.Close()
@@ -96,38 +103,50 @@ func (cli *Client) request(method, action string, param url.Values, body io.Read
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return ErrorResponse{
+			Code:    "Requset Eroor",
+			Message: fmt.Sprintf("获取 resp body 错误: %s", err),
+		}, err
 	}
 	//fmt.Println(string(respBody))
 
 	// 解析错误结构体
-	var errResp ErrorResponse
+	// var errResp ErrorResponse
 	err = json.Unmarshal(respBody, &errResp)
 	if err != nil {
-		return fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
+		return ErrorResponse{
+			Code:    "Json Eroor",
+			Message: fmt.Sprintf("解析 RespBody 错误: %s", err),
+		}, fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
 	}
 	if errResp.Code != "" {
-		return fmt.Errorf("[%s](%s): %s", errResp.RequestID, errResp.Code, errResp.Message)
+		return errResp, fmt.Errorf(errResp.Message)
 	}
 
 	// 解析正常结构体
 	err = json.Unmarshal(respBody, &respInfo)
 	if err != nil {
-		return fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
+		return ErrorResponse{
+			Code:    "Json Eroor",
+			Message: fmt.Sprintf("解析 RespBody 错误: %s", err),
+		}, fmt.Errorf("JSON Unmarshal 错误信息: %s", err)
 	}
 
-	return nil
+	return ErrorResponse{}, nil
 }
 
-// 使用 GET 方法请求 API
-func (cli *Client) requestGET(action string, param url.Values, respInfo interface{}) error {
+// requestGET 使用 GET 方法请求 API
+func (cli *Client) requestGET(action string, param url.Values, respInfo interface{}) (ErrorResponse, error) {
 	return cli.request("GET", action, param, nil, respInfo)
 }
 
-// Do to start requset
-func (cli *Client) Do(action string, body map[string]string, respInfo interface{}) error {
+// Do 开始执行请求
+func (cli *Client) Do(action string, body map[string]string, optional map[string]string, respInfo interface{}) (ErrorResponse, error) {
 	param := url.Values{}
 	for k, v := range body {
+		param.Set(k, v)
+	}
+	for k, v := range optional {
 		param.Set(k, v)
 	}
 
