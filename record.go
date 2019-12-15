@@ -89,9 +89,9 @@ func (cli *Client) SetDomainRecordStatus(RecordId string, status bool) (respInfo
 
 	var Status string
 	if status {
-		Status = "Disable"
-	} else {
 		Status = "Enable"
+	} else {
+		Status = "Disable"
 	}
 	body := map[string]string{
 		"RecordId": RecordId,
